@@ -108,8 +108,9 @@ def vapi_webhook():
     return jsonify({"status": "ok"}), 200
 
 
-@app.route("/", methods=["GET"])
+@app.route("/", methods=["GET", "POST"])
 def health():
+    print("POST OR GET HIT ROOT")
     return "OK", 200
 
 
