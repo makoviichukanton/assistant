@@ -109,7 +109,7 @@ def vapi_webhook():
     "spam": "⚫ Спам"
     }
     
-msg = f"""📞 <b>Новый звонок</b>
+    msg = f"""📞 <b>Новый звонок</b>
 
 👤 <b>Имя:</b> {ai_result.get('name', '—')}
 📱 <b>Номер:</b> <code>{caller_number}</code>
