@@ -103,7 +103,7 @@ def vapi_webhook():
             "original_aussage": "—"
         }
 
-priority_map = {
+    priority_map = {
     "wichtig": "🔴 Важно",
     "normal": "🟡 Обычный",
     "spam": "⚫ Спам"
