@@ -3,18 +3,18 @@ import json
 import requests
 from flask import Flask, request, jsonify
 from datetime import datetime
-import anthropic
+from openai import OpenAI
 
 app = Flask(__name__)
 
-ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY")
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
 TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
 TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID")
 
-anthropic_client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
+openai_client = OpenAI(api_key=OPENAI_API_KEY)
 
 
-def analyze_call_with_ai(transcript: str, caller_number: str, duration: int) -> str:
+def analyze_call_with_ai(transcript: str) -> dict:
     prompt = f"""Du bekommst ein Transkript eines Telefongesprächs auf Deutsch. Analysiere es und antworte NUR auf Russisch im folgenden JSON-Format:
 
 {{
@@ -28,13 +28,13 @@ Transkript:
 
 Antworte NUR mit dem JSON-Objekt, ohne zusätzlichen Text."""
 
-    message = anthropic_client.messages.create(
-        model="claude-haiku-4-5-20251001",
+    response = openai_client.chat.completions.create(
+        model="gpt-4o-mini",
         max_tokens=500,
         messages=[{"role": "user", "content": prompt}]
     )
 
-    raw = message.content[0].text.strip()
+    raw = response.choices[0].message.content.strip()
     try:
         data = json.loads(raw)
     except json.JSONDecodeError:
@@ -60,21 +60,17 @@ def send_telegram_message(text: str):
 def vapi_webhook():
     data = request.json or {}
 
-    # Vapi End of Call Report структура
     message = data.get("message", {})
     if message.get("type") != "end-of-call-report":
         return jsonify({"status": "ignored"}), 200
 
-    # Данные звонка
     call = message.get("call", {})
     transcript = message.get("transcript", "Нет транскрипта")
-    ended_reason = message.get("endedReason", "unknown")
 
     caller_number = call.get("customer", {}).get("number", "Неизвестен")
     duration_seconds = int(message.get("durationSeconds", 0))
     start_time_str = call.get("startedAt", "")
 
-    # Форматируем время
     try:
         dt = datetime.fromisoformat(start_time_str.replace("Z", "+00:00"))
         date_formatted = dt.strftime("%d.%m.%Y")
@@ -86,9 +82,8 @@ def vapi_webhook():
     duration_min = duration_seconds // 60
     duration_sec = duration_seconds % 60
 
-    # Анализ через Claude
     if transcript and transcript != "Нет транскрипта":
-        ai_result = analyze_call_with_ai(transcript, caller_number, duration_seconds)
+        ai_result = analyze_call_with_ai(transcript)
     else:
         ai_result = {
             "kategorie": "Unbekannt",
@@ -96,7 +91,6 @@ def vapi_webhook():
             "original_aussage": "—"
         }
 
-    # Формируем сообщение в Telegram
     msg = f"""📞 <b>Новый звонок</b>
 
 📅 <b>Дата:</b> {date_formatted}
