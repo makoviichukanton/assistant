@@ -19,8 +19,8 @@ def analyze_call_with_ai(transcript: str) -> dict:
 
 {{
   "kategorie": "eine der folgenden: Bestellung, Anfrage, Beschwerde, Rückruf, Spam, Sonstiges",
-  "was_wollte": "kurze Zusammenfassung auf Russisch was der Anrufer wollte (2-3 Sätze)",
-  "original_aussage": "die wichtigste originale Aussage des Anrufers auf Deutsch (1-2 Sätze)"
+  "was_wollte": "kurze Zusammenfassung auf Russisch was der Anrufer wollte (bis 5 Sätze)",
+  "original_aussage": "die wichtigste originale Aussage des Anrufers auf Deutsch (bis 5 Sätze)"
 }}
 
 Transkript:
@@ -100,7 +100,7 @@ def vapi_webhook():
 
 🏷 <b>Категория:</b> {ai_result.get('kategorie', '—')}
 
-🇷🇺 <b>Что хотел (перевод):</b>
+🇷🇺 <b>Транскрипт разговора (перевод):</b>
 {ai_result.get('was_wollte', '—')}
 
 🇩🇪 <b>Оригинал (Deutsch):</b>
