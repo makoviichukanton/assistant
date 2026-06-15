@@ -1,4 +1,4 @@
-# Vapi → Claude AI → Telegram Webhook
+# Vapi → Open AI (API) → Telegram Webhook
 
 ## Файлы
 - `main.py` - основной скрипт
