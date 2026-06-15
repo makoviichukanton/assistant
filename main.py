@@ -98,9 +98,11 @@ def vapi_webhook():
         ai_result = analyze_call_with_ai(transcript)
     else:
         ai_result = {
-            "kategorie": "Unbekannt",
-            "was_wollte": "Транскрипт недоступен",
-            "original_aussage": "—"
+            "name": "Не представился",
+            "priority": "normal",
+            "reason": "Транскрипт недоступен",
+            "russian_transcript": "—",
+            "german_transcript": "—"
         }
 
     priority_map = {
@@ -108,13 +110,15 @@ def vapi_webhook():
     "normal": "🟡 Обычный",
     "spam": "⚫ Спам"
     }
+
+    priority = ai_result.get("priority", "").strip().lower()
     
     msg = f"""📞 <b>Новый звонок</b>
 
 👤 <b>Имя:</b> {ai_result.get('name', '—')}
 📱 <b>Номер:</b> <code>{caller_number}</code>
 
-🚨 <b>Приоритет:</b> {priority_map.get(ai_result.get('priority'), '🟡 Обычный')}
+🚨 <b>Приоритет:</b> {priority_map.get(priority, '🟡 Обычный')}
 
 📌 <b>Причина звонка:</b>
 {ai_result.get('reason', '—')}
