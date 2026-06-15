@@ -67,13 +67,13 @@ def analyze_call_with_ai(transcript: str) -> dict:
     try:
         data = json.loads(raw)
     except json.JSONDecodeError:
-    data = {
+        data = {
         "name": "Не определено",
         "priority": "normal",
         "reason": "GPT вернул некорректный JSON",
         "russian_transcript": raw,
         "german_transcript": "—"
-    }
+        }
     return data
 
 
