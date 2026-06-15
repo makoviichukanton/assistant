@@ -1,37 +1,22 @@
 # Vapi → Claude AI → Telegram Webhook
 
 ## Файлы
-- `main.py` — основной скрипт
-- `requirements.txt` — зависимости
-- `Procfile` — команда запуска для Railway
+- `main.py` - основной скрипт
+- `requirements.txt` - зависимости
+- `Procfile` - команда запуска для Railway
 
-## Деплой на Railway
-
-### 1. GitHub
-Создай репозиторий на github.com и загрузи все 4 файла.
-
-### 2. Railway
-- New Project → GitHub Repository → выбери репо
-- После деплоя Railway даст URL вида: `https://твой-проект.up.railway.app`
-
-### 3. Переменные окружения (Variables в Railway)
-Добавь три переменные:
+### Переменные окружения (Variables в Railway)
 ```
 ANTHROPIC_API_KEY=sk-ant-...
 TELEGRAM_BOT_TOKEN=123456:ABC...
 TELEGRAM_CHAT_ID=твой_chat_id
 ```
 
-### 4. Vapi
+### Vapi
 - Dashboard → Assistant → Server URL
-- Вставь: `https://твой-проект.up.railway.app/webhook`
-- Включи только: End of Call Report
+- End of Call Report
 
-## Как получить TELEGRAM_CHAT_ID
-1. Напиши боту @userinfobot в Telegram
-2. Он пришлёт твой chat_id
-
-## Пример сообщения в Telegram
+## Cообщения в Telegram
 ```
 📞 Новый звонок
 
