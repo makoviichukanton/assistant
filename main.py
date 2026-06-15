@@ -56,14 +56,24 @@ def analyze_call_with_ai(transcript: str) -> dict:
     )
 
     raw = response.choices[0].message.content.strip()
+
+    raw = raw.replace("```json", "")
+    raw = raw.replace("```", "")
+    raw = raw.strip()
+
+    print("GPT RAW RESPONSE:")
+    print(raw)
+
     try:
         data = json.loads(raw)
     except json.JSONDecodeError:
-        data = {
-            "kategorie": "Sonstiges",
-            "was_wollte": raw,
-            "original_aussage": "Nicht verfügbar"
-        }
+    data = {
+        "name": "Не определено",
+        "priority": "normal",
+        "reason": "GPT вернул некорректный JSON",
+        "russian_transcript": raw,
+        "german_transcript": "—"
+    }
     return data
 
 
