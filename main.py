@@ -13,18 +13,41 @@ TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID")
 
 
 def analyze_call_with_ai(transcript: str) -> dict:
-    prompt = f"""Du bekommst ein Transkript eines Telefongesprächs auf Deutsch. Analysiere es und antworte NUR auf Russisch im folgenden JSON-Format:
+    prompt = f"""Ты получаешь транскрипт телефонного разговора на немецком языке.
+
+Проанализируй разговор и ответь СТРОГО в JSON формате.
+
+Определи:
+
+1. Имя человека, если он представился. Если имени нет, напиши "Не представился".
+
+2. Приоритет звонка:
+
+- "wichtig" → если звонок требует обязательного контакта (потєнциальный или имеющийся клиент, Finanzamt, Behörden, банк, адвокат, официальный запрос, важный деловой контакт).
+- "normal" → если человек лично знает Антона, друг, знакомый, родственник, просит связаться лично, звонок по оставленному резюме, опрос и тп., что не требут срочного обратного звонка или может быть проигнорировано.
+- "spam" → мошенники, реклама, навязывание услуг, холодные продажи, подозрительные звонки.
+
+3. Причину звонка — коротко на русском (1 предложение).
+
+4. Сделай дословный перевод речи звонящего на русский язык. Не сокращай. Передай максимально близко к оригиналу.
+
+5. Выдели оригинальную речь звонящего на немецком языке. Не сокращай.
+
+Ответь строго так:
 
 {{
-  "kategorie": "eine der folgenden: Bestellung, Anfrage, Beschwerde, Rückruf, Spam, Sonstiges",
-  "was_wollte": "kurze Zusammenfassung auf Russisch was der Anrufer wollte (2-3 Sätze)",
-  "original_aussage": "die wichtigste originale Aussage des Anrufers auf Deutsch (1-2 Sätze)"
+  "name": "",
+  "priority": "",
+  "reason": "",
+  "russian_transcript": "",
+  "german_transcript": ""
 }}
 
-Transkript:
+Транскрипт:
+
 {transcript}
 
-Antworte NUR mit dem JSON-Objekt, ohne zusätzlichen Text."""
+Отвечай только JSON без дополнительных слов."""
 
     response = openai.ChatCompletion.create(
         model="gpt-4o-mini",
@@ -67,15 +90,6 @@ def vapi_webhook():
 
     caller_number = call.get("customer", {}).get("number", "Неизвестен")
     duration_seconds = int(message.get("durationSeconds", 0))
-    start_time_str = call.get("startedAt", "")
-
-    try:
-        dt = datetime.fromisoformat(start_time_str.replace("Z", "+00:00"))
-        date_formatted = dt.strftime("%d.%m.%Y")
-        time_formatted = dt.strftime("%H:%M")
-    except Exception:
-        date_formatted = "—"
-        time_formatted = "—"
 
     duration_min = duration_seconds // 60
     duration_sec = duration_seconds % 60
@@ -89,20 +103,27 @@ def vapi_webhook():
             "original_aussage": "—"
         }
 
+priority_map = {
+    "wichtig": "🔴 Важно",
+    "normal": "🟡 Обычный",
+    "spam": "⚫ Спам"
+    }
+    
     msg = f"""📞 <b>Новый звонок</b>
 
-📅 <b>Дата:</b> {date_formatted}
-🕐 <b>Время:</b> {time_formatted}
-👤 <b>Номер:</b> <code>{caller_number}</code>
-⏱ <b>Длительность:</b> {duration_min}м {duration_sec}с
+👤 <b>Имя:</b> {ai_result.get('name', '—')}
+📱 <b>Номер:</b> <code>{caller_number}</code>
 
-🏷 <b>Категория:</b> {ai_result.get('kategorie', '—')}
+🚨 <b>Приоритет:</b> {priority_map.get(ai_result.get('priority'), '🟡 Обычный')}
 
-🇷🇺 <b>Транскрипт + перевод звонка:</b>
-{ai_result.get('was_wollte', '—')}
+📌 <b>Причина звонка:</b>
+{ai_result.get('reason', '—')}
 
-🇩🇪 <b>Оригинал (Deutsch):</b>
-<i>{ai_result.get('original_aussage', '—')}</i>"""
+🇷🇺 <b>Транскрипт (RU):</b>
+{ai_result.get('russian_transcript', '—')}
+
+🇩🇪 <b>Транскрипт (DE):</b>
+<i>{ai_result.get('german_transcript', '—')}</i>"""
 
     send_telegram_message(msg)
     return jsonify({"status": "ok"}), 200
